@@ -1,7 +1,11 @@
+//Mindshow Grumpy Cat by Tipatat Chennavasin [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/eG1Y1s88sKq)
+
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 const width = 840;
 const height = 680;
@@ -154,6 +158,7 @@ let food;
 
 function init() {
     scene.clear();
+
     const gameCube = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
     gameCube.material = new THREE.LineBasicMaterial({ color: 0xffffff });
     const gameCubeMesh = new THREE.Mesh(gameCube.geometry, gameCube.material);
@@ -178,9 +183,24 @@ function init() {
     // scene.add(pointLightHelper1);
     // const pointLightHelper2 = new THREE.PointLightHelper(backLight, sphereSize);
     // scene.add(pointLightHelper2);
+    {
+        const mtlLoader = new MTLLoader();
+        mtlLoader.setResourcePath('resources/grumpyCat/');
+        mtlLoader.load('materials.mtl', (mtl) => {
+            mtl.preload();
 
+            const objLoader = new OBJLoader();
+            objLoader.setMaterials(mtl);
+            objLoader.setResourcePath('resources/grumpyCat/');
+            objLoader.load('cat.obj', (root) => {
+                console.log("yup")
+                root.position.set(0, 0, 25);
+                scene.add(root.scene);
+            });
+        });
+    }
     camera.position.set(0, 0, 25);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(scene.position);
     points = 0;
     snake = new Snake(0, 0, 0);
     food = Food.getRandomFood();

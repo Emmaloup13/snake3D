@@ -1,6 +1,10 @@
 {
   "name": "my-snake",
   "source": "src/snake.html",
+  "staticFiles": {
+    "staticOutPath": "./src/resources",
+    "staticPath": "./src/resources"
+  },
   "scripts": {
     "start": "parcel",
     "build": "parcel build"

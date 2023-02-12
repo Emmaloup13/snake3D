@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { MeshBasicMaterial } from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-const width = 640;
-const height = 480;
+
+const width = 840;
+const height = 680;
 
 let points;
 
@@ -24,7 +24,7 @@ function updatePoints() {
 }
 
 const scene = new THREE.Scene();
-// scene.background = new THREE.MeshBasicMaterial({ color: 0x000000 })
+
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -33,12 +33,16 @@ jeu.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, jeu);
 
+const cubeSize = 20;
 
-function createCube(x, y) {
+
+
+
+function createCube(x, y, z) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0x0000ff });
     const cube = new THREE.Mesh(geometry, material);
-    cube.position.set(x, y, 0);
+    cube.position.set(x, y, z);
     scene.add(cube);
     return cube;
 }
@@ -46,16 +50,17 @@ function createCube(x, y) {
 
 //Adaptation de mon code 2D en 3D, code plus simple
 class Snake {
-    lastPositions = [[]];
-    direction = [0, -1];
+    lastPositions = [];
+    direction = [0, -1, 0];
     blocks = [];
-    constructor(x, y) {
+    constructor(x, y, z) {
         this.x = x;
         this.y = y;
-        this.head = createCube(x, y);
+        this.z = z;
+        this.head = createCube(x, y, z);
         for (let i = 1; i <= 5; i++) {
-            this.blocks.push(createCube(0, -i));
-            this.lastPositions.push([0, -i]);
+            this.blocks.push(createCube(0, -i, 0));
+            this.lastPositions.push([0, -i, 0]);
         }
     }
     moveBlocks() {
@@ -64,11 +69,11 @@ class Snake {
             this.blocks[i].position.set(
                 this.lastPositions[n - 1 - i][0],
                 this.lastPositions[n - 1 - i][1],
-                0);
+                this.lastPositions[n - 1 - i][2]);
         }
     }
     move() {
-        this.lastPositions.push([this.x, this.y]);
+        this.lastPositions.push([this.x, this.y, this.z]);
         if (this.x < -10 || this.x > 10) {
             //out of bounds
             this.x = -this.x;
@@ -77,9 +82,14 @@ class Snake {
             //out of bounds
             this.y = -this.y;
         }
+        if (this.z < -10 || this.z > 10) {
+            //out of bounds
+            this.z = -this.z;
+        }
         this.x += this.direction[0];
         this.y += this.direction[1];
-        this.head.position.set(this.x, this.y, 0);
+        this.z += this.direction[2];
+        this.head.position.set(this.x, this.y, this.z);
         if (this.lastPositions.length > this.blocks.length + 2) {
             this.lastPositions.shift();
         }
@@ -88,7 +98,7 @@ class Snake {
     checkCollisionWithBlocks() {
         for (let i = 0; i < this.blocks.length; i++) {
             const block = this.blocks[i];
-            if (block.position.x == this.x && block.position.y == this.y) {
+            if (block.position.x == this.x && block.position.y == this.y && block.position.z == this.z) {
                 init();
             }
 
@@ -100,10 +110,10 @@ class Snake {
         this.checkCollisionWithBlocks();
     }
     addBlock() {
-        let n = this.lastPositions.length;
         this.blocks.push(createCube(
             this.lastPositions[1][0],
-            this.lastPositions[1][1]
+            this.lastPositions[1][1],
+            this.lastPositions[1][2]
         ));
     }
 }
@@ -113,22 +123,24 @@ let snake;
 class Food {
     x = 3;
     y = 0;
-    constructor(x, y) {
-        this.food = createCube(x, y);
+    z = 0;
+    constructor(x, y, z) {
+        this.food = createCube(x, y, z);
         this.food.material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         this.x = x;
         this.y = y;
+        this.z = z;
     }
 
     static getRandomFood() {
         function r_int(min, max) {
             return Math.floor(Math.random() * (max - min) + min);
         }
-        return new Food(r_int(-5, 5), r_int(-5, 5));
+        return new Food(r_int(-5, 5), r_int(-5, 5), r_int(-5, 5));
     }
 
     collision() {
-        if (this.x === snake.x && this.y === snake.y) {
+        if (this.x === snake.x && this.y === snake.y && this.z === snake.z) {
             scene.remove(this.food);
             food = Food.getRandomFood();
             snake.addBlock();
@@ -142,6 +154,13 @@ let food;
 
 function init() {
     scene.clear();
+    const gameCube = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+    gameCube.material = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const gameCubeMesh = new THREE.Mesh(gameCube.geometry, gameCube.material);
+    gameCubeMesh.position.set(0, 0, 0);
+
+    let edges = new THREE.EdgesGeometry(gameCube);
+    scene.add(new THREE.LineSegments(edges, gameCube.material));
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.1);
     scene.add(ambient);
@@ -160,9 +179,10 @@ function init() {
     // const pointLightHelper2 = new THREE.PointLightHelper(backLight, sphereSize);
     // scene.add(pointLightHelper2);
 
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 0, 25);
+    camera.lookAt(0, 0, 0);
     points = 0;
-    snake = new Snake(0, 0);
+    snake = new Snake(0, 0, 0);
     food = Food.getRandomFood();
 }
 
@@ -191,27 +211,37 @@ window.addEventListener('keydown', function (e) {
     switch (e.key) {
         case 'ArrowLeft':
             if (snake.direction[0] == 0) {
-                snake.direction = [-1, 0];
+                snake.direction = [-1, 0, 0];
             }
             break;
         case 'ArrowRight':
             if (snake.direction[0] == 0) {
-                snake.direction = [1, 0];
+                snake.direction = [1, 0, 0];
             }
             break;
         case 'ArrowUp':
             if (snake.direction[1] == 0) {
-                snake.direction = [0, 1];
+                snake.direction = [0, 1, 0];
             }
             break;
         case 'ArrowDown':
             if (snake.direction[1] == 0) {
-                snake.direction = [0, -1];
+                snake.direction = [0, -1, 0];
             }
             break;
         case '0':
             //On remet la caméra au point de départ
             camera.position.set(0, 0, 10);
+        case 'z':
+            if (snake.direction[2] == 0) {
+                snake.direction = [0, 0, -1];
+            }
+            break;
+        case 's':
+            if (snake.direction[2] == 0) {
+                snake.direction = [0, 0, 1];
+            }
+            break;
         default:
             break;
     }

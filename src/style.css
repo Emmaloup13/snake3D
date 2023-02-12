@@ -1,0 +1,26 @@
+body {
+    margin: 0;
+    display: flex;
+    place-items: center;
+    min-width: 320px;
+    min-height: 100vh;
+    background: rgb(195, 34, 165);
+    background: linear-gradient(0deg, rgba(195, 34, 165, 1) 0%, rgba(253, 187, 45, 1) 100%);
+}
+
+#jeu {
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+#score {
+    position: absolute;
+    left: 1em;
+    top: 1em;
+    padding: 1em;
+    font-size: large;
+    background: rgba(163, 5, 5, 0.8);
+    color: white;
+    font-family: monospace;
+}

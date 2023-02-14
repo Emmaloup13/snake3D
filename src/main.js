@@ -1,11 +1,49 @@
 //Mindshow Grumpy Cat by Tipatat Chennavasin [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/eG1Y1s88sKq)
+//Apple Green by Quaternius (https://poly.pizza/m/3VXWnjDOEw)
+//Hamburger by jeremy [CC-BY] (https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/fNdEHvI86Hu)
+//Sushi Nigiri by Quaternius (https://poly.pizza/m/ea93ie9bKj)
 
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+function loadRandomFood(x, y, z, food) {
+    const loader = new GLTFLoader();
+    loader.setPath('assets/models/')
+    if (food == "hamburger") {
+        loader.load('/food/Hamburger.glb', gltfReader);
+    }
+    else if (food == "apple") {
+        loader.load('/food/Apple.glb', gltfReader);
+    }
+    else if (food == "sushi") {
+        loader.load('/food/Sushi.glb', gltfReader);
+    }
+
+    function gltfReader(gltf) {
+        let testModel = null;
+
+        testModel = gltf.scene;
+
+        if (testModel != null) {
+            console.log("Model loaded:  " + gltf.asset);
+            gltf.scene.position.set(x, y, z);
+            gltf.scene.name = "food";
+            scene.add(gltf.scene);
+        } else {
+            console.log("Load FAILED.");
+        }
+    }
+}
+
+function remove3DobjectByName(objName) {
+    var selectedObject = scene.getObjectByName(objName);
+    scene.remove(selectedObject);
+    //animate();
+}
+
 
 const width = 840;
 const height = 680;
@@ -123,29 +161,36 @@ class Snake {
 }
 
 let snake;
+const FoodNames = ["hamburger", "apple", "sushi"];
 
+function r_int(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
+}
 class Food {
     x = 3;
     y = 0;
     z = 0;
     constructor(x, y, z) {
-        this.food = createCube(x, y, z);
-        this.food.material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        // this.food = createCube(x, y, z);
+        //this.food.material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        loadRandomFood(x, y, z, Food.getRandomFoodName());
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
     static getRandomFood() {
-        function r_int(min, max) {
-            return Math.floor(Math.random() * (max - min) + min);
-        }
         return new Food(r_int(-5, 5), r_int(-5, 5), r_int(-5, 5));
+    }
+
+    static getRandomFoodName() {
+        return FoodNames[r_int(1, 4) - 1];
     }
 
     collision() {
         if (this.x === snake.x && this.y === snake.y && this.z === snake.z) {
-            scene.remove(this.food);
+            //scene.remove(this.food);
+            remove3DobjectByName("food");
             food = Food.getRandomFood();
             snake.addBlock();
             points++;
@@ -167,9 +212,9 @@ function init() {
     let edges = new THREE.EdgesGeometry(gameCube);
     scene.add(new THREE.LineSegments(edges, gameCube.material));
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.1);
+    const ambient = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambient);
-
+    /*
     const frontLight = new THREE.PointLight(0xf0ce26, 100, 500);
     frontLight.position.set(-2, 0, 10);
     scene.add(frontLight);
@@ -177,28 +222,14 @@ function init() {
     const backLight = new THREE.PointLight(0x117ebd, 100, 500);
     backLight.position.set(4, 0, -5);
     scene.add(backLight);
-
+    */
     // const sphereSize = 1;
     // const pointLightHelper1 = new THREE.PointLightHelper(frontLight, sphereSize);
     // scene.add(pointLightHelper1);
     // const pointLightHelper2 = new THREE.PointLightHelper(backLight, sphereSize);
     // scene.add(pointLightHelper2);
-    {
-        const mtlLoader = new MTLLoader();
-        mtlLoader.setResourcePath('resources/grumpyCat/');
-        mtlLoader.load('materials.mtl', (mtl) => {
-            mtl.preload();
 
-            const objLoader = new OBJLoader();
-            objLoader.setMaterials(mtl);
-            objLoader.setResourcePath('resources/grumpyCat/');
-            objLoader.load('cat.obj', (root) => {
-                console.log("yup")
-                root.position.set(0, 0, 25);
-                scene.add(root.scene);
-            });
-        });
-    }
+
     camera.position.set(0, 0, 25);
     camera.lookAt(scene.position);
     points = 0;

@@ -1,6 +1,6 @@
 {
   "name": "my-snake",
-  "source": "./src/snake.html",
+  "source": "./src/index.html",
   "staticFiles": {
     "staticOutPath": "./assets/models",
     "staticPath": "./assets/models"

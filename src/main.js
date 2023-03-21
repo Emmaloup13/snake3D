@@ -10,16 +10,17 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 function loadRandomFood(x, y, z, food) {
+    console.log(food);
     const loader = new GLTFLoader();
-    loader.setPath('assets/models/')
+    loader.setPath('assets/models/');
     if (food == "hamburger") {
-        loader.load('/food/Hamburger.glb', gltfReader);
+        loader.load('food/Hamburger.glb', gltfReader);
     }
     else if (food == "apple") {
-        loader.load('/food/Apple.glb', gltfReader);
+        loader.load('food/Apple.glb', gltfReader);
     }
     else if (food == "sushi") {
-        loader.load('/food/Sushi.glb', gltfReader);
+        loader.load('food/Sushi.glb', gltfReader);
     }
 
     function gltfReader(gltf) {
@@ -82,7 +83,7 @@ const cubeSize = 20;
 
 function createCube(x, y, z) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+    const material = new THREE.MeshStandardMaterial({ color: 0x006400 });
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(x, y, z);
     scene.add(cube);
@@ -100,6 +101,7 @@ class Snake {
         this.y = y;
         this.z = z;
         this.head = createCube(x, y, z);
+        this.head.material = new THREE.MeshStandardMaterial({ color: 0x34C924 });
         for (let i = 1; i <= 5; i++) {
             this.blocks.push(createCube(0, -i, 0));
             this.lastPositions.push([0, -i, 0]);
@@ -212,22 +214,25 @@ function init() {
     let edges = new THREE.EdgesGeometry(gameCube);
     scene.add(new THREE.LineSegments(edges, gameCube.material));
 
-    const ambient = new THREE.AmbientLight(0xffffff, 1.5);
+    const ambient = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambient);
-    /*
-    const frontLight = new THREE.PointLight(0xf0ce26, 100, 500);
-    frontLight.position.set(-2, 0, 10);
+
+    const frontLight = new THREE.DirectionalLight(0xffffff, 1);
+    frontLight.position.set(0, 10, 10);
     scene.add(frontLight);
 
-    const backLight = new THREE.PointLight(0x117ebd, 100, 500);
-    backLight.position.set(4, 0, -5);
-    scene.add(backLight);
-    */
+
+    // const backLight = new THREE.PointLight(0xffffff, 1, 500);
+    // backLight.position.set(4, 0, -5);
+    // scene.add(backLight);
+
     // const sphereSize = 1;
     // const pointLightHelper1 = new THREE.PointLightHelper(frontLight, sphereSize);
     // scene.add(pointLightHelper1);
     // const pointLightHelper2 = new THREE.PointLightHelper(backLight, sphereSize);
     // scene.add(pointLightHelper2);
+    // const helper = new THREE.DirectionalLightHelper(frontLight, 5);
+    // scene.add(helper);
 
 
     camera.position.set(0, 0, 25);
@@ -282,7 +287,7 @@ window.addEventListener('keydown', function (e) {
             break;
         case '0':
             //On remet la caméra au point de départ
-            camera.position.set(0, 0, 10);
+            camera.position.set(0, 0, 25);
         case 'z':
             if (snake.direction[2] == 0) {
                 snake.direction = [0, 0, -1];
